@@ -128,10 +128,6 @@ else:
     print("Private Key:\n\t" +  str(s_long_term_key) + "\n")
     print("Public Key Pair: \n\tx: " + str(lkey.x) + "\n\ty: " + str(lkey.y))
 
-    # memoFile = open("long_term_keys.txt", "w")
-    # memoFile.write("Private Key:\n\t" +  str(s_long_term_key) + "\n\n")
-    # memoFile.write("Public Key Pair: \n\tx: " + str(lkey.x) + "\n\ty: " + str(lkey.y) )
-
 # ! server's long term key
 QSer_long = Point(	0xc1bc6c9063b6985fe4b93be9b8f9d9149c353ae83c34a434ac91c85f61ddd1e9, 
 					0x931bd623cf52ee6009ed3f50f6b4f92c564431306d284be7e97af8e443e69a8c,
@@ -161,38 +157,30 @@ try:
     
     # T = sA * QB
     T = ephemeral_key_private * SKEY
-    # print(T)
 
     # U = {T.x||T.y||“BeY ourselfNoMatterWhatTheySay”}
     U = str(T.x) + str(T.y) + "BeYourselfNoMatterWhatTheySay"
-    # print(U)
     
     # K = SHA3 256(U)
     K = SHA3_256.new( U.encode() )
     key = K.digest()
-    # print(K)
 
     # ! Sign Message
     
     # W1 = QA.x||QA.y||QB.x||QB.y
     W1 = str(EKEY.x) + str(EKEY.y) + str(SKEY.x) + str(SKEY.y)
-    # print(W1)
     
     # (SigA.s,SigA.h)=SignsL(W1)
     sig_a_h, sig_a_s = generate_signature(W1, P_generator, n_order, s_long_term_key)
-    # print(sig_a_h, sig_a_s)
     
     # Y1 = EK (“s”||SigA.s||“h”||SigA.h)
     encrypt_this = "s" + str(sig_a_s) + "h" + str(sig_a_h)
-    # print(encrypt_this)
 
     # Encyption
-    # key = Random.new().read(16)
     cipher = AES.new( key, AES.MODE_CTR)
     ptext = encrypt_this.encode()
     Y1 = cipher.nonce + cipher.encrypt(ptext)
     ctext = int.from_bytes(Y1, byteorder="big")
-    # print(ctext)
 
 	### ! Send encrypted-signed keys and retrive server's signed keys
     mes = {'ID': stuID, 'FINAL MESSAGE': ctext}
@@ -203,19 +191,17 @@ try:
     # W2 = QB.x||QB.y||QA.x||QA.y.
     W2 = str(SKEY.x) + str(SKEY.y) + str(EKEY.x) + str(EKEY.y)
 
-    # print(ctext)
     ctext = ctext.to_bytes((ctext.bit_length()+7)//8, byteorder='big')
     cipher = AES.new(key, AES.MODE_CTR, nonce=ctext[0:8])
     dtext = cipher.decrypt(ctext[8:]).decode()
     
-    # print(dtext)
     server_sig_s = dtext[1:dtext.find("h")]
     server_sig_h = dtext[dtext.find("h")+1:]
-    # print(server_sig_s, server_sig_h)
 
     print("Server Signatures extracted...")
 
-    print(verify_signature(W2, int(server_sig_h), int(server_sig_s), P_generator, n_order, QSer_long))
+    # s-h swap ???
+    print("Verified ?",verify_signature(W2, int(server_sig_h), int(server_sig_s), P_generator, n_order, QSer_long))
 
     mes = {'ID': stuID}
     response = requests.get('{}/{}'.format(API_URL, "STSStep6"), json=mes)
@@ -228,12 +214,11 @@ try:
     message = dtext[:dtext.find(".")+1]
     randomNumber = dtext[dtext.find(".")+2:]
 
-    print("Server sent to us:\t", message, randomNumber)
-    
+    print("Server sent to us (6):\t", message, randomNumber)
     
     sendingRandomNumber = int(randomNumber) + 1
     encrypt_this = message + " " + str(sendingRandomNumber)
-    print("We send to server:\t", encrypt_this)
+    print("We send to server (7):\t", encrypt_this)
 
     cipher = AES.new( key, AES.MODE_CTR)
     ptext = encrypt_this.encode()
@@ -247,7 +232,7 @@ try:
     ctext = ctext.to_bytes((ctext.bit_length()+7)//8, byteorder='big')
     cipher = AES.new(key, AES.MODE_CTR, nonce=ctext[0:8])
     dtext = cipher.decrypt(ctext[8:]).decode()
-    print("Final dtext:\t\t", dtext)
+    print("Final dtext (8):\t", dtext)
 
 except Exception as e:
 	print(e)
