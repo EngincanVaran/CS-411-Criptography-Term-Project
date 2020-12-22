@@ -17,8 +17,8 @@ import re
 import json
 API_URL = 'http://cryptlygos.pythonanywhere.com'
 
-# stuID = 25378
-stuID = 25050
+stuID = 25378
+# stuID = 25050
 
 def create_curve():
 	eliptic_curve = Curve.get_curve('secp256k1')
@@ -60,25 +60,25 @@ eliptic_curve, n_order, p_field, P_generator, a, b = create_curve()
 # HERE CREATE A LONG TERM KEY
 s_private_key, lkey = generate_key( P_generator )
 
-memoFile = open("long_term_keys.txt", "w")
-memoFile.write("Private Key: " +  str(s_private_key) + "\n")
-memoFile.write("Public Key Pair: ( " + str(lkey.x) + " , " + str(lkey.y) + " )")
+# memoFile = open("long_term_keys.txt", "w")
+# memoFile.write("Private Key: " +  str(s_private_key) + "\n")
+# memoFile.write("Public Key Pair: ( " + str(lkey.x) + " , " + str(lkey.y) + " )")
 
 # server's long term key
 QSer_long = Point(	0xc1bc6c9063b6985fe4b93be9b8f9d9149c353ae83c34a434ac91c85f61ddd1e9, 
 					0x931bd623cf52ee6009ed3f50f6b4f92c564431306d284be7e97af8e443e69a8c,
 					eliptic_curve)
 
-s_private_key = 6557471723369604805641431247986677714366983658769930991094579692778057242958
-x = 20609217136271877409751143207719209834560690928280669226414054601339579366790
-y = 77795073030484862984657935288014582923087677724743906903802262439770482651858
+s_private_key = 47666435850023222522538115447831933783968995887993274248099640865352605019841
+x = 112693496793898388323889376260470365333781760123339412256107543126083454379049
+y = 84899903894321408611609458277776996173471925064813113646133721457630506157843
 Qa = Point(x,y,eliptic_curve)
 
 # HERE GENERATE A EPHEMERAL KEY 
 e_s_private, ekey = generate_key( P_generator)
 
 try:
-	
+	'''
 	# OUR CODE 
 	h,s = generate_signature(str(stuID), P_generator, n_order, s_private_key)
 	
@@ -103,6 +103,7 @@ try:
 	response = requests.put('{}/{}'.format(API_URL, "STSStep1&2"), json = mes)
 	if((response.ok) == False): raise Exception(response.json())
 	res=response.json()
+	print(res)
 	
 	#calculate T,K,U
 	Q_b_x = res['SKEY.X']
@@ -126,13 +127,13 @@ try:
 	
 	ctext = int.from_bytes(Y1, byteorder="big")
 
-	###Send encrypted-signed keys and retrive server's signed keys
+	### Send encrypted-signed keys and retrive server's signed keys
 	mes = {'ID': stuID, 'FINAL MESSAGE': ctext}
 	response = requests.put('{}/{}'.format(API_URL, "STSStep4&5"), json = mes)
 	if((response.ok) == False): raise Exception(response.json()) 
 	ctext= response.json() 
 	print(ctext)
-
+	'''
 	#Decrypt 
 
 
